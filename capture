@@ -1,0 +1,19 @@
+video_path = '/Users/sechan/Desktop/v.data-ds/testv.mov'
+import cv2 as cv
+import numpy as np
+vide =cv.VideoCapture(video_path)
+
+
+count =0
+while (vide.isOpened):
+    ret, frame = vide.read()
+    if ret != True :
+        break
+
+    if  count == 5380:
+        cv.IMREAD_UNCHANGED
+        cv.imwrite("/Users/sechan/Desktop/v.data-ds/real_tests.png" + ".png", frame)
+        break
+
+    #print("frame shape & count info \n", "frame info: " ,frame.shape,"count info: ",count)
+    count +=1
