@@ -1,0 +1,26 @@
+
+import time
+import cv2 as cv
+import numpy as np
+
+video_path = '/Users/sechan/Desktop/v.data-ds/testv.mov'
+
+vide =cv.VideoCapture(video_path)
+
+
+def check_vide_real_time(data):
+    start_time = time.time()
+    while(data.isOpened):
+
+        ret, frame = data.read()
+        if ret == False:
+            print(time.time()-start_time)
+            return
+        cv.imshow("test",frame)
+        if cv.waitKey(1) == 27:
+            break
+
+check_vide_real_time(vide)
+cv.waitKey(0)
+vide.release()
+cv.destroyAllWindows()

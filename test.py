@@ -106,16 +106,17 @@ while (vide.isOpened):
     ret, frame = vide.read()
     if ret != True :
         break
-    print(count)
+   # print(count)
     #gray_vid=cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
-    #cv.imshow("testing ",gray_vid)
+    cv.imshow("testing ",frame)
     if  part_check_pixel(frame,for_time_check):
-        print("frame number: ",count)
+        #print("frame number: ",count)
         break
-    count +=1
-'''
+    #count +=1
+
  # about video code
+ '''
 '''
 testim = for_time_check[300:600,600:1100]
 
@@ -130,11 +131,14 @@ cv.destroyAllWindows()
 ''' # show img example
 
 
+print("sim pic result of rate RGB pixel")
+check_sim(for_time_check,pic_sim)
 
-#gray_check_sim(gray_pic,gray_sam)
-
-
+print("\n\n")
+print("same pic result of rate RGB pixel")
+check_sim(for_time_check,for_time_check)
 print(pic.shape)
+
 
 
 print("time information to full pixel matching: ", time.time()-st)
