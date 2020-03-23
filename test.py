@@ -1,7 +1,7 @@
 import time
 import cv2 as cv
 import numpy as np
-
+video_paths = "/Users/sechan/Desktop/v.data-ds/realv/test1.mpg"
 video_path = '/Users/sechan/Desktop/v.data-ds/testv.mov'
 pic_top_path = '/Users/sechan/Desktop/v.data-ds/test3.png'
 pic_sam_path = '/Users/sechan/Desktop/v.data-ds/test2.png'
@@ -13,17 +13,19 @@ pic_time_path ='/Users/sechan/Desktop/v.data-ds/time.png'
 st = time.time()
 
 vide =cv.VideoCapture(video_path)
+vides = cv.VideoCapture(video_path)
 pic = cv.imread(pic_top_path)
 dif = cv.imread(pic_dif_path)
 sam = cv.imread(pic_sam_path)
 for_time_check = cv.imread(pic_time_path)
 pic_sim = cv.imread(pic_sim)
-
+'''
 gray_pic = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
 gray_dif = cv.cvtColor(dif, cv.COLOR_BGR2GRAY)
 gray_sam = cv.cvtColor(sam, cv.COLOR_BGR2GRAY)
 gray_time = cv.cvtColor(for_time_check,cv.COLOR_BGR2GRAY)
 gray_sim = cv.cvtColor(pic_sim,cv.COLOR_BGR2GRAY)
+'''
 #to gray image value
 
 def check_pixel(data1, data2):
@@ -101,22 +103,19 @@ def gray_check_sim(data1, data2):
 # check simility_rate of pic - gray
 
 
-'''
+
 while (vide.isOpened):
+    sta = time.time()
     ret, frame = vide.read()
     if ret != True :
         break
-   # print(count)
-    #gray_vid=cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    print("one - frame: ",time.time()-sta)
 
-    cv.imshow("testing ",frame)
-    if  part_check_pixel(frame,for_time_check):
-        #print("frame number: ",count)
-        break
-    #count +=1
-
+    
  # about video code
- '''
+
+#print("vide_fps_info", vide.get(cv.CAP_PROP_FPS))
+#print("vide_fps_info",vides.get(cv.CAP_PROP_FPS))
 '''
 testim = for_time_check[300:600,600:1100]
 
@@ -130,7 +129,7 @@ cv.waitKey(0)
 cv.destroyAllWindows()
 ''' # show img example
 
-
+'''
 print("sim pic result of rate RGB pixel")
 check_sim(for_time_check,pic_sim)
 
@@ -140,5 +139,5 @@ check_sim(for_time_check,for_time_check)
 print(pic.shape)
 
 
-
+'''
 print("time information to full pixel matching: ", time.time()-st)
