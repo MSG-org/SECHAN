@@ -1,19 +1,20 @@
-video_path = '/Users/sechan/Desktop/v.data-ds/testv.mov'
+#video_path = '/Users/sechan/Desktop/v.data-ds/testv.mov'
+video_path = '/Users/sechan/Desktop/v.data-ds/tests.mp4'
+video_path = '/Users/sechan/Desktop/v.data-ds/realv/test1.mpg'
 import cv2 as cv
-import numpy as np
 vide =cv.VideoCapture(video_path)
 
 
-count =0
+
 while (vide.isOpened):
     ret, frame = vide.read()
     if ret != True :
         break
 
-    if  count == 5380:
-        cv.IMREAD_UNCHANGED
+    if  vide.get(cv.CAP_PROP_POS_FRAMES)== 20000:
+
         cv.imwrite("/Users/sechan/Desktop/v.data-ds/real_tests.png" + ".png", frame)
+        print("capture complete frame = ",vide.get(cv.CAP_PROP_POS_FRAMES))
         break
 
-    #print("frame shape & count info \n", "frame info: " ,frame.shape,"count info: ",count)
-    count +=1
+
