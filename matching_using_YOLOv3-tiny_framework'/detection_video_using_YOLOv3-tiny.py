@@ -94,6 +94,7 @@ def postprocess(frame, outs):
         print("detection_object_count: " ,len(boxes))
     if pre_confi !=0 and pre_confi == con:
         count+=1
+        print("count is")
 
 
 

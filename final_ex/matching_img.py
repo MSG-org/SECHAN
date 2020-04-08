@@ -1,16 +1,14 @@
+'''
+All rights about the program by GIGA Genie AI Service Team, korea Telecom Data System.
+@author : S.C CHOI
+'''
+
+
+
 import cv2 as cv
 import argparse
 import numpy as np
-import time
-import copy
-st = time.time()
-
-pic_top_path = '/Users/sechan/Desktop/v.data-ds/test3.png'
-pic_sam_path = '/Users/sechan/Desktop/v.data-ds/test2.png'
-pic_dif_path = '/Users/sechan/Desktop/v.data-ds/test1.png'
-pic_sim_path = '/Users/sechan/Desktop/v.data-ds/check_sim.png'
-pic_time_path ='/Users/sechan/Desktop/v.data-ds/time.png'
-
+from cul_time import *
 
 kernel_sharpen_1 = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
 confThreshold = 0.5
@@ -19,9 +17,12 @@ inpWidth = 416
 inpHeight = 416
 parser = argparse.ArgumentParser(description='Object Detection using YOLO in OPENCV')
 args = parser.parse_args()
+
+#모델 경로만 수정 요
 classesFile = "/Users/sechan/PycharmProjects/SECHAN/YOLO_module_file/coco.names"
 modelConfiguration = "/Users/sechan/PycharmProjects/SECHAN/YOLO_module_file/yolov3-tiny.cfg"
 modelWeights = "/Users/sechan/PycharmProjects/SECHAN/YOLO_module_file/yolov3-tiny.weights"
+
 classes = None
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
@@ -29,13 +30,47 @@ net.setPreferableTarget(cv.dnn.DNN_TARGET_CPU)
 check_list1 =[]
 check_list2 = []
 count = 0
+
+
 with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
+def part_check_pixel(data1, data2):
 
+    # These variable values can change fluidly.
+    rowcount = 300
+    lcount = 600
+
+    for row in range(rowcount, rowcount+300):
+        for low in range(lcount , lcount + 500):
+            if data1[row][low][0] != data2[row][low][0]:
+                return False
+    return True
 def getOutputsNames(net):
     layersNames = net.getLayerNames()
     return [layersNames[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+
+
+# Draw the predicted bounding box
+def drawPred(classId, conf, left, top, right, bottom,frame):
+    # Draw a bounding box.
+    cv.rectangle(frame, (left, top), (right, bottom), (255, 178, 50), 3)
+
+    label = '%.2f' % conf
+
+    # Get the label for the class name and its confidence
+    if classes:
+        assert (classId < len(classes))
+        label = '%s:%s' % (classes[classId], label)
+
+    # Display the label at the top of the bounding box
+    labelSize, baseLine = cv.getTextSize(label, cv.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+    top = max(top, labelSize[1])
+    cv.rectangle(frame, (left, top - round(1.5 * labelSize[1])), (left + round(1.5 * labelSize[0]), top + baseLine),
+                 (255, 255, 255), cv.FILLED)
+    cv.putText(frame, label, (left, top), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 1)
+
+
 def postprocess(frame, outs):
     frameHeight = frame.shape[0]
     frameWidth = frame.shape[1]
@@ -57,12 +92,11 @@ def postprocess(frame, outs):
                 classIds.append(classId)
                 confidences.append(float(confidence))
                 boxes.append([left, top, width, height])
+
                 if count ==0:
                     check_list1.append([left, top, width, height,confidence,classIds])
                 else :
                     check_list2.append([left, top, width, height, confidence,classIds])
-
-
     indices = cv.dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThreshold)
     for i in indices:
         i = i[0]
@@ -72,23 +106,17 @@ def postprocess(frame, outs):
         width = box[2]
         height = box[3]
         con = confidences[i]
+        drawPred(classIds[i], confidences[i], left, top, left + width, top + height,frame)
     if len(boxes) >= 1:
         print("detection_object_count: " ,len(boxes))
+    return frame
 def detection(data):
     blob = cv.dnn.blobFromImage(data, 1 / 256, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
     net.setInput(blob)
     outs = net.forward(getOutputsNames(net))
-    postprocess(data, outs)
-def print_check_lists():
-    print("first img detection info\n\n-----------------------")
-    for list in check_list1:
-        print(list)
+    return postprocess(data, outs)
 
-    print("second img detection info\n\n-----------------------")
 
-    for list in check_list2:
-        print(list)
-    print("\n")
 def matching_detection_information():
     if len(check_list1) != len(check_list2):
         print("not matching img ------ detection object count is different")
@@ -100,27 +128,54 @@ def matching_detection_information():
                 print("not matching img ------ information is not matching")
                 return False
     print("img is matching")
+    print("\n\n")
+    print("vod img detection information: ", check_list1)
+    print("clip img detection information: ", check_list2)
+    print("\n")
     return True
+def match(data1,data2,fr):
+    check = part_check_pixel(data1,data2)
 
+    if check == True:
+        data1 = cv.resize(data1,(650,1200))
+        data2 = cv.resize(data2,(650,1200))
 
+        kas = np.hstack((data1, data2))
 
+        kas = np.concatenate((data1, data2), axis=1)
+        cv.imshow("As", kas)
+        cv.waitKey(2000)
 
+        print("match!")
+        print("start detection matching......")
 
-pic_top = cv.imread(pic_top_path)
-pic_sam = cv.imread(pic_sam_path)
-pic_dif = cv.imread(pic_dif_path)
-pic_check_sim = cv.imread(pic_time_path)
-pic_sim = cv.imread(pic_sim_path)
+        frame1 = detection(data1)
+        global count
+        count += 1
+        frame2 = detection(data2)
 
+        matching_detection_information()
+        kas = np.hstack((frame1, frame2))
 
-detection(pic_check_sim)
-print("count",count)
-count += 1
-detection(pic_sim)
-print("\n\n")
-print("count ",count)
-print_check_lists()
-matching_detection_information()
-print(time.time()-st)
+        kas = np.concatenate((frame1, frame2), axis=1)
+        cv.imshow("Ass", kas)
+        cv.waitKey(0)
+
+        return True
+    else:
+        print(fr,"frame is Not matching")
+        return False
+
+def video_open(vod_data,pic_data):
+    c = 0
+    while vod_data.isOpened:
+        ret, frame = vod_data.read()
+
+        if ret ==False:
+            break
+
+        if match(frame,pic_data,c) == True:
+            return "finish",vod_data.get(cv.CAP_PROP_POS_FRAMES)
+        c+=1
 
 

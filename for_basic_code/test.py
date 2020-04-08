@@ -102,15 +102,18 @@ def gray_check_sim(data1, data2):
     print("R rate: ", (sim / count) * 100)
 # check simility_rate of pic - gray
 
-
-
+def capture(path):
+    clip = cv.VideoCapture(path)
+    ret , frame = clip.read()
+    cv.imwrite("/Users/sechan/Desktop/v.data-ds/저장 경로" , frame)
+'''
 while (vide.isOpened):
     sta = time.time()
     ret, frame = vide.read()
     if ret != True :
         break
     print("one - frame: ",time.time()-sta)
-
+'''
     
  # about video code
 
@@ -141,3 +144,4 @@ print(pic.shape)
 
 '''
 print("time information to full pixel matching: ", time.time()-st)
+capture(video_paths)

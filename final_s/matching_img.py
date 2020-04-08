@@ -1,16 +1,14 @@
+'''
+All rights about the program by GIGA Genie AI Service Team, korea Telecom Data System.
+@author : S.C CHOI
+'''
+
+
+
 import cv2 as cv
 import argparse
 import numpy as np
-import time
-import copy
-st = time.time()
-
-pic_top_path = '/Users/sechan/Desktop/v.data-ds/test3.png'
-pic_sam_path = '/Users/sechan/Desktop/v.data-ds/test2.png'
-pic_dif_path = '/Users/sechan/Desktop/v.data-ds/test1.png'
-pic_sim_path = '/Users/sechan/Desktop/v.data-ds/check_sim.png'
-pic_time_path ='/Users/sechan/Desktop/v.data-ds/time.png'
-
+from cul_time import *
 
 kernel_sharpen_1 = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
 confThreshold = 0.5
@@ -19,9 +17,12 @@ inpWidth = 416
 inpHeight = 416
 parser = argparse.ArgumentParser(description='Object Detection using YOLO in OPENCV')
 args = parser.parse_args()
+
+#모델 경로만 수정 요
 classesFile = "/Users/sechan/PycharmProjects/SECHAN/YOLO_module_file/coco.names"
 modelConfiguration = "/Users/sechan/PycharmProjects/SECHAN/YOLO_module_file/yolov3-tiny.cfg"
 modelWeights = "/Users/sechan/PycharmProjects/SECHAN/YOLO_module_file/yolov3-tiny.weights"
+
 classes = None
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
@@ -29,10 +30,22 @@ net.setPreferableTarget(cv.dnn.DNN_TARGET_CPU)
 check_list1 =[]
 check_list2 = []
 count = 0
+
+
 with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
+def part_check_pixel(data1, data2):
 
+    # These variable values can change fluidly.
+    rowcount = 300
+    lcount = 600
+
+    for row in range(rowcount, rowcount+300):
+        for low in range(lcount , lcount + 500):
+            if data1[row][low][0] != data2[row][low][0]:
+                return False
+    return True
 def getOutputsNames(net):
     layersNames = net.getLayerNames()
     return [layersNames[i[0] - 1] for i in net.getUnconnectedOutLayers()]
@@ -57,12 +70,11 @@ def postprocess(frame, outs):
                 classIds.append(classId)
                 confidences.append(float(confidence))
                 boxes.append([left, top, width, height])
+
                 if count ==0:
                     check_list1.append([left, top, width, height,confidence,classIds])
                 else :
                     check_list2.append([left, top, width, height, confidence,classIds])
-
-
     indices = cv.dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThreshold)
     for i in indices:
         i = i[0]
@@ -79,16 +91,6 @@ def detection(data):
     net.setInput(blob)
     outs = net.forward(getOutputsNames(net))
     postprocess(data, outs)
-def print_check_lists():
-    print("first img detection info\n\n-----------------------")
-    for list in check_list1:
-        print(list)
-
-    print("second img detection info\n\n-----------------------")
-
-    for list in check_list2:
-        print(list)
-    print("\n")
 def matching_detection_information():
     if len(check_list1) != len(check_list2):
         print("not matching img ------ detection object count is different")
@@ -101,26 +103,33 @@ def matching_detection_information():
                 return False
     print("img is matching")
     return True
+def match(data1,data2,fr):
+    check = part_check_pixel(data1,data2)
 
+    if check == True:
+        print("match!")
+        print("start detection matching......")
+        detection(data1)
+        global count
+        count += 1
+        detection(data2)
+        matching_detection_information()
+        return True
+    else:
+        print(fr,"frame is Not matching")
+        return False
 
+def video_open(vod_data,pic_data):
+    c = 0
+    while vod_data.isOpened:
+        ret, frame = vod_data.read()
 
+        if ret ==False:
+            break
 
+        if match(frame,pic_data,c) == True:
+            return "finish",vod_data.get(cv.CAP_PROP_POS_FRAMES)
+        c+=1
 
-pic_top = cv.imread(pic_top_path)
-pic_sam = cv.imread(pic_sam_path)
-pic_dif = cv.imread(pic_dif_path)
-pic_check_sim = cv.imread(pic_time_path)
-pic_sim = cv.imread(pic_sim_path)
-
-
-detection(pic_check_sim)
-print("count",count)
-count += 1
-detection(pic_sim)
-print("\n\n")
-print("count ",count)
-print_check_lists()
-matching_detection_information()
-print(time.time()-st)
 
 
